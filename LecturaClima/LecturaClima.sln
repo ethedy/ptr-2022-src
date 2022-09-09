@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LecturaClima", "LecturaClima.csproj", "{A18E9F8A-3503-48E3-8CE9-746DB478AF6D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A18E9F8A-3503-48E3-8CE9-746DB478AF6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A18E9F8A-3503-48E3-8CE9-746DB478AF6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A18E9F8A-3503-48E3-8CE9-746DB478AF6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A18E9F8A-3503-48E3-8CE9-746DB478AF6D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6BC868AF-1FBC-410C-A594-8A867B88732B}
+	EndGlobalSection
+EndGlobal
