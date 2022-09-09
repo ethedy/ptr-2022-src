@@ -36,7 +36,7 @@
     31  icon              cloudy                                partly-cloudy-day
  */
 
-using StreamReader rdr = new StreamReader(@"D:\CURSOS\2022\src\Datos-Clima.csv");
+using StreamReader rdr = new StreamReader(@"Datos-Clima.csv");
 
 //  using string xx;  da error porque string no tiene Dispose()
 
@@ -75,7 +75,7 @@ bool TryParseDatoClima(string linea, out DatoClima datosDia)
 {
   //  obtener datos del clima
   datosDia = default;
-  return true;
+  return false;
 }
 
 public record DatoClima(DateTime Fecha, float TempMinima, float TempMaxima, float Humedad);
