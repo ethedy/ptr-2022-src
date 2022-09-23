@@ -58,12 +58,11 @@ while (!rdr.EndOfStream)
 
   //  procesar linea
   //
-  //  var (ok, datoClima) = TryParseDatoClima(linea);
-  if (TryParseDatoClima(linea) is (true, var datoClima))
+  if (TryParseDatoClima(linea, out DatoClima datosDia))
   {
     //  agregar datosDia al array de valores validos
     //
-    datos.Add(datoClima);
+    datos.Add(datosDia);
   }
   else
   {
@@ -71,53 +70,69 @@ while (!rdr.EndOfStream)
   }
 }
 
+//float sumaTotal = 0.0f;
+
+//foreach (var item in datos)
+//  sumaTotal += item.TempMinima;
+//Console.WriteLine($"Promedio de minimas: {sumaTotal / datos.Count:N1}");
+
+float[] d = new float[datos.Count];
+int idx = 0;
+foreach (var x in datos)
+  d[idx++] = x.TempMinima;
+
+//  en d[] voy a tener el array de todos los valores de ....
+//    temp minima
+
+Calculo(Promedio, d, "Promedio de temperaturas minimas");
+Calculo(Minimo, d, "Minimo de temp minimas");
+Calculo(Maximo, d, "Maximo de temp minimas");
+
+
+Console.ReadLine();
+
 //  rdr.Close();    ==> OK, pero no estoy liberando recursos del OS, mejor Dispose()
 //  rdr.Dispose();  ==> es automatico si uso la sentencia using
 
 //  calcular estadisticas...
 
-//  Func<DatoClima, float> funcion = TempMinima;
+void Calculo(Func<float[], float> delegado, float[] valores, string texto)
+{
+  float resultado = delegado(valores);
 
-//Func<DatoClima, float> funcion = delegate(DatoClima dc)
-//{
-//  return dc.TempMinima;
-//};
-
-//  Func<DatoClima, float> funcion = (DatoClima x) => x.TempMinima;
-
-float promedio = datos.Average(x => x.TempMinima);
-float minimo = datos.Min(x => x.TempMinima);
-float maximo = datos.Max(x => x.TempMinima);
+  Console.WriteLine($"{texto}: {resultado}");
+}
 
 
-Console.WriteLine($"Promedio = {promedio}");
-Console.WriteLine($"Promedio = {minimo}");
-Console.WriteLine($"Promedio = {maximo}");
+float Promedio(float[] items)
+{
+  float total = 0f;
 
-//  fluent syntax
-//
-var datosAmplitudTermica =
-  datos
-    .Select(dc => new { dc.Fecha, amp = dc.TempMaxima - dc.TempMinima })
-    .ToList();
+  foreach (var i in items)
+    total += i;
+  return total / items.Length;
+}
 
-//  
-//
-var promAmplitudTermica =
-  datos
-    //  .Where(dc => dc.Fecha.DayOfWeek != DayOfWeek.Saturday && dc.Fecha.DayOfWeek != DayOfWeek.Sunday)
-    .Select(dc => new { dc.Fecha, amp = dc.TempMaxima - dc.TempMinima })
-    .Where(anon => anon.Fecha.DayOfWeek != DayOfWeek.Saturday &&
-                   anon.Fecha.DayOfWeek != DayOfWeek.Sunday)
-    .Average(dat => dat.amp);
+float Maximo(float[] items)
+{
+  float maximo = float.MinValue;
 
-var promAmplitudTermica1 = ObtenerAmplitudesTermicas(datos)
-                              .Average(at=>at.Amplitud);
+  foreach (var i in items)
+    if (i > maximo)
+      maximo = i;
+  return maximo;
+}
 
-Console.WriteLine($"{promAmplitudTermica}");
-Console.WriteLine($"{promAmplitudTermica1}");
+float Minimo(float[] items)
+{
+  float minimo = float.MaxValue;
 
-Console.ReadLine();
+  foreach (var i in items)
+    if (i < minimo)
+      minimo = i;
+  return minimo;
+}
+
 
 
 //   name,datetime,tempmax,tempmin,temp,feelslikemax,feelslikemin,feelslike,dew,humidity,precip,precipprob,precipcover,preciptype,snow,snowdepth,windgust,windspeed,winddir,sealevelpressure,cloudcover,visibility,solarradiation,solarenergy,uvindex,severerisk,sunrise,sunset,moonphase,conditions,description,icon,stations
@@ -125,27 +140,27 @@ Console.ReadLine();
 //                      ^                                                                                                                                                                                                      ^                   
 //                      primera                                                                                                                                                                                                ultima
 //
-(bool ok, DatoClima valor) TryParseDatoClima(string linea)
+bool TryParseDatoClima(string linea, out DatoClima datosDia)
 {
-  if (linea == null) return (false, default);
+  datosDia = default;
 
   int primera = linea.IndexOf("\",");
   int ultima = linea.IndexOf(",\"");
 
   if (primera < 0 || ultima < 0 || ultima < primera)
-    return (false, default);
+    return false;
 
   string lineaValida = linea.Substring(primera + 2, ultima - (primera + 2));
   string[] items = lineaValida.Split(new char[] { ',' }, StringSplitOptions.TrimEntries);
 
   if (items.Length != NUMERO_CAMPOS)
-    return (false, default);
+    return false;
 
   if (!DateTime.TryParseExact(items[0], new[] { "yyyy-MM-dd" }, null, DateTimeStyles.None,
         out DateTime fecha))
   {
     Console.WriteLine($"Fecha incorrecta ==> {items[0]}");
-    return (false, default); ;
+    return false;
   }
 
   //  para generar un error y probar try..catch, editar el .csv y cambiar alguno de los
@@ -159,42 +174,25 @@ Console.ReadLine();
 
     //  datosDia.Fecha = fecha; NO!!!
     //
-    return (true, new DatoClima(fecha, tempMinima, tempMaxima, humedad));
+    datosDia = new DatoClima(fecha, tempMinima, tempMaxima, humedad);
+    return true;
   }
   catch (LecturaClimaException ex)
   {
     Console.WriteLine(ex.Message);
-    return (false, default); 
+    return false;
   }
 
   //  funcion local --> puede lanzar LecturaClimaException
   //
   float ConvertirFloat(string s, string nombreCampo)
   {
-    return 
-      float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out float resultado) 
-        ? resultado
-        : throw new LecturaClimaException(nombreCampo, s);
+    if (!float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out float resultado))
+      throw new LecturaClimaException(nombreCampo, s);
 
-    //if (!float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out float resultado))
-    //  throw new LecturaClimaException(nombreCampo, s);
-
-    //return resultado;
+    return resultado;
   }
 }
-
-
-IEnumerable<DatoAmplitud> ObtenerAmplitudesTermicas(IEnumerable<DatoClima> datos)
-{
-   var resultado = datos
-      .Where(anon => anon.Fecha.DayOfWeek != DayOfWeek.Saturday &&
-                     anon.Fecha.DayOfWeek != DayOfWeek.Sunday)
-      .Select(dc => new DatoAmplitud(dc.Fecha, dc.TempMaxima - dc.TempMinima));
-
-   return resultado;
-}
-
-public record DatoAmplitud(DateTime Fecha, float Amplitud);
 
 /// <summary>
 /// Tipo inmutable que contiene los datos climaticos para una fecha particular

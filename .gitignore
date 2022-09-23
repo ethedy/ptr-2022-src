@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/8Reinas
+/CalcularPi
+/Factorial
+/Fibonacci
+/Hanoi
+/Primos
